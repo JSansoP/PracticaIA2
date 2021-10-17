@@ -30,8 +30,6 @@ public class Bitxo28 extends Agent {
 
         // Inicialització de variables que utilitzaré al meu comportament
     }
-    int contador = 0;
-    Instant a = Instant.now();
     int girar = 0;
     @Override
     public void avaluaComportament() {
@@ -47,10 +45,10 @@ public class Bitxo28 extends Agent {
     private void camina() {
 
         if (hiHaParet(18)) {
-            if (estat.enCollisio && (estat.distanciaVisors[CENTRAL] < 10 || estat.distanciaVisors[ESQUERRA] < 10 || estat.distanciaVisors[DRETA] < 10)) {
+            if (estat.enCollisio && hiHaParet(10)) {
                 atura();
                 enrere();
-                noMirar = 10;
+                noMirar = 5;
             } else if (estat.objecteVisor[CENTRAL] == PARET) {
                 if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
                     atura();
@@ -64,28 +62,7 @@ public class Bitxo28 extends Agent {
                 noMirar = 2;
 
             } else {
-                if(girar != 0){
-                    if(girar<0){
-                        atura();
-                        esquerra();
-                        endavant();
-                        girar++;
-                    } else{
-                        atura();
-                        dreta();
-                        endavant();
-                    }
-                } else if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
-                    atura();
-                    esquerra();
-                    endavant();
-                    girar++;
-                } else {
-                    atura();
-                    dreta();
-                    endavant();
-                    girar--;
-                }
+                // Como esquivar pared?
             }
         } else if (hiHaParet(85)) {
             if (estat.distanciaVisors[CENTRAL] < 85) {
