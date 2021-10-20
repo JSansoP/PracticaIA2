@@ -18,7 +18,7 @@ public class Bitxo27 extends Agent {
     Random r = new Random();
     int noMirar = 0;
     int vecesGirado = 0;
-
+    int contadorColision = 0;
     public Bitxo27(Agents pare) {
         super(pare, "Nuevo", "imatges/robotank1.gif");
     }
@@ -45,13 +45,18 @@ public class Bitxo27 extends Agent {
     }
 
     private void camina() {
-
+        if (estat.enCollisio) {
+            atura();
+            enrere();
+            contadorColision++;
+            noMirar = 5;
+        }
+        if(contadorColision>=10){
+            hyperespai();
+            contadorColision = 0;
+        }
         if (hiHaParet(25)) {
-            if (estat.enCollisio) {
-                atura();
-                enrere();
-                noMirar = 5;
-            } else if (estat.objecteVisor[CENTRAL] == PARET) {
+            if (estat.objecteVisor[CENTRAL] == PARET) {
                 if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
                     atura();
                     gira(20 + r.nextInt(20));
@@ -72,19 +77,19 @@ public class Bitxo27 extends Agent {
                     dreta();
                     vecesGirado++;
                 }
-                System.out.println("Girando:"+vecesGirado);
+                System.out.println("Girando:" + vecesGirado);
                 endavant();
             }
         } else if (vecesGirado != 0) {
             atura();
-            if(vecesGirado>0){
+            if (vecesGirado > 0) {
                 esquerra();
                 vecesGirado--;
-            } else{
+            } else {
                 dreta();
                 vecesGirado++;
             }
-            System.out.println("Desgirando:"+vecesGirado);
+            System.out.println("Desgirando:" + vecesGirado);
             endavant();
         } else if (hiHaParet(85)) {
             if (estat.distanciaVisors[CENTRAL] < 85) {
@@ -98,6 +103,9 @@ public class Bitxo27 extends Agent {
                     endavant();
                 }
 
+            } else{
+                atura();
+                endavant();
             }
 
         } else {
