@@ -17,6 +17,7 @@ public class Bitxo27 extends Agent {
     Estat estat;
     Random r = new Random();
     int noMirar = 0;
+    int vecesGirado = 0;
 
     public Bitxo27(Agents pare) {
         super(pare, "Nuevo", "imatges/robotank1.gif");
@@ -45,8 +46,8 @@ public class Bitxo27 extends Agent {
 
     private void camina() {
 
-        if (hiHaParet(18)) {
-            if (estat.enCollisio && hiHaParet(10)) {
+        if (hiHaParet(25)) {
+            if (estat.enCollisio) {
                 atura();
                 enrere();
                 noMirar = 5;
@@ -63,8 +64,28 @@ public class Bitxo27 extends Agent {
                 noMirar = 2;
 
             } else {
-                // Como esquivar pared?
+                atura();
+                if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
+                    esquerra();
+                    vecesGirado--;
+                } else {
+                    dreta();
+                    vecesGirado++;
+                }
+                System.out.println("Girando:"+vecesGirado);
+                endavant();
             }
+        } else if (vecesGirado != 0) {
+            atura();
+            if(vecesGirado>0){
+                esquerra();
+                vecesGirado--;
+            } else{
+                dreta();
+                vecesGirado++;
+            }
+            System.out.println("Desgirando:"+vecesGirado);
+            endavant();
         } else if (hiHaParet(85)) {
             if (estat.distanciaVisors[CENTRAL] < 85) {
                 if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
@@ -115,6 +136,7 @@ public class Bitxo27 extends Agent {
             Objecte aux = estat.objectes[i];
             if (aux.agafaTipus() >= 100 && aux.agafaTipus() != 100 + estat.id) {
                 if (aux.agafaDistancia() < 30) {
+
                     fin = aux;
                     if (!estat.escutActivat) {
                         activaEscut();
