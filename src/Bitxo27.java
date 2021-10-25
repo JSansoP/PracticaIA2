@@ -85,6 +85,7 @@ public class Bitxo27 extends Agent {
             if (vecesGirado > 0) {
                 esquerra();
                 vecesGirado--;
+                noMirar++;
             } else {
                 dreta();
                 vecesGirado++;

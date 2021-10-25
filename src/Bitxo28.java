@@ -17,6 +17,8 @@ public class Bitxo28 extends Agent {
     Estat estat;
     Random r = new Random();
     int noMirar = 0;
+    int vecesGirado = 0;
+    int contadorColision = 0;
 
     public Bitxo28(Agents pare) {
         super(pare, "Antic", "imatges/robotank1.gif");
@@ -31,6 +33,7 @@ public class Bitxo28 extends Agent {
         // Inicialització de variables que utilitzaré al meu comportament
     }
     int girar = 0;
+
     @Override
     public void avaluaComportament() {
         estat = estatCombat();
@@ -43,27 +46,53 @@ public class Bitxo28 extends Agent {
     }
 
     private void camina() {
-
-        if (hiHaParet(18)) {
-            if (estat.enCollisio && hiHaParet(10)) {
-                atura();
-                enrere();
-                noMirar = 5;
-            } else if (estat.objecteVisor[CENTRAL] == PARET) {
+        if (estat.enCollisio) {
+            atura();
+            enrere();
+            contadorColision++;
+            noMirar = 5;
+        }
+        if (contadorColision >= 10) {
+            hyperespai();
+            contadorColision = 0;
+        }
+        if (hiHaParet(25)) {
+            if (estat.objecteVisor[CENTRAL] == PARET) {
                 if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
                     atura();
                     gira(20 + r.nextInt(20));
                     endavant();
                 } else {
                     atura();
-                    gira((20+r.nextInt(20))*-1);
+                    gira((20 + r.nextInt(20)) * -1);
                     endavant();
                 }
                 noMirar = 2;
 
             } else {
-                // Como esquivar pared?
+                atura();
+                if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
+                    esquerra();
+                    vecesGirado--;
+                    noMirar++;
+                } else {
+                    dreta();
+                    vecesGirado++;
+                }
+                System.out.println("Girando:" + vecesGirado);
+                endavant();
             }
+        } else if (vecesGirado != 0) {
+            atura();
+            if (vecesGirado > 0) {
+                esquerra();
+                vecesGirado--;
+            } else {
+                dreta();
+                vecesGirado++;
+            }
+            System.out.println("Desgirando:" + vecesGirado);
+            endavant();
         } else if (hiHaParet(85)) {
             if (estat.distanciaVisors[CENTRAL] < 85) {
                 if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
@@ -76,26 +105,14 @@ public class Bitxo28 extends Agent {
                     endavant();
                 }
 
+            } else {
+                atura();
+                endavant();
             }
-            
+
         } else {
-            int aux = comidaEnem();
-            switch (aux) {
-                case 2:
-                    atura();
-                    dreta();
-                    endavant();
-                    break;
-                case 3:
-                    atura();
-                    esquerra();
-                    endavant();
-                    break;
-                default:
-                    atura();
-                    endavant();
-                    break;
-            }
+            atura();
+            endavant();
         }
     }
 
@@ -113,8 +130,8 @@ public class Bitxo28 extends Agent {
 
     private void mirar() {
         Objecte fin = null;
+        int distMin = 9999999;
         if (estat.veigAlgunRecurs || estat.veigAlgunEscut) {
-            int distMin = 9999999;
             for (int i = 0; i < estat.numObjectes; i++) {
                 Objecte aux = estat.objectes[i];
                 if (aux.agafaTipus() == 100 + estat.id || aux.agafaTipus() == Estat.ESCUT) {
@@ -124,8 +141,22 @@ public class Bitxo28 extends Agent {
                     }
                 }
             }
-            mira(fin);
         }
+        for (int i = 0; i < estat.numObjectes; i++) {
+            Objecte aux = estat.objectes[i];
+            if (aux.agafaTipus() >= 100 && aux.agafaTipus() != 100 + estat.id) {
+                if (aux.agafaDistancia() < 30) {
+
+                    fin = aux;
+                    if (!estat.escutActivat) {
+                        activaEscut();
+                    }
+                    break;
+                }
+            }
+        }
+        mira(fin);
+
     }
 
     private boolean hiHaParet(int distancia) {
