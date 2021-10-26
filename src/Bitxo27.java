@@ -19,14 +19,15 @@ public class Bitxo27 extends Agent {
     int noMirar = 0;
     int vecesGirado = 0;
     int contadorColision = 0;
+    final int distMaxBales = 400;
     public Bitxo27(Agents pare) {
-        super(pare, "Nuevo", "imatges/robotank1.gif");
+        super(pare, "JAJ", "imatges/robotank1.gif");
     }
 
     @Override
     public void inicia() {
         // atributsAgents(v,w,dv,av,ll,es,hy)
-        int cost = atributsAgent(6, 7, 600, 30, 23, 5, 5);
+        int cost = atributsAgent(6, 4, 600, 50, 23, 5, 3);
         System.out.println("Cost total:" + cost);
 
         // Inicialització de variables que utilitzaré al meu comportament
@@ -36,11 +37,14 @@ public class Bitxo27 extends Agent {
     @Override
     public void avaluaComportament() {
         estat = estatCombat();
+        camina();
+        comidaEnem();
         if (noMirar == 0) {
             mirar();
         } else {
             noMirar--;
         }
+        
         camina();
     }
     /**
@@ -136,16 +140,24 @@ public class Bitxo27 extends Agent {
      * Métode que s'encarrega de cercar els recursos enemics dins l'entern
      * @return 
      */
-    private int comidaEnem() {
+    private void comidaEnem() {
+        Objecte fin = null;
+        int distMin = 9999999;
         if (estat.veigAlgunRecurs) {
-            for (int i = 0; i < estat.numObjectes; i++) {
+            for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els recursos
                 Objecte aux = estat.objectes[i];
-                if (aux.agafaTipus() > 100 && aux.agafaTipus() != 100 + estat.id && aux.agafaDistancia() < 20) {
-                    return aux.agafaSector();
+                if (aux.agafaTipus() >= 100 && aux.agafaTipus() != (100 + estat.id) && (aux.agafaSector() ==2 || aux.agafaSector()==3) && aux.agafaDistancia()<distMaxBales) {
+                    if (distMin > aux.agafaDistancia()) {
+                        distMin = aux.agafaDistancia();
+                        fin = aux;
+                    }
                 }
             }
         }
-        return 0;
+        if(fin != null && estat.llançaments>0 && !estat.llançant){
+            mira(fin);
+            llança();
+        }
     }
     /**
      * Métode que s'encarrega de cercar els nostres recursos i els escuts dins
@@ -162,21 +174,6 @@ public class Bitxo27 extends Agent {
                         distMin = aux.agafaDistancia();
                         fin = aux;
                     }
-                }
-            }
-        }
-        //Miram si tenim algun recurs enemic a prop i si es aquest cas activam 
-        //el escut
-        for (int i = 0; i < estat.numObjectes; i++) {
-            Objecte aux = estat.objectes[i];
-            if (aux.agafaTipus() >= 100 && aux.agafaTipus() != 100 + estat.id) {
-                if (aux.agafaDistancia() < 30) {
-
-                    fin = aux;
-                    if (!estat.escutActivat) {
-                        activaEscut();
-                    }
-                    break;
                 }
             }
         }
