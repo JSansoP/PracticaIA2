@@ -27,7 +27,7 @@ public class Bitxo27 extends Agent {
     @Override
     public void inicia() {
         // atributsAgents(v,w,dv,av,ll,es,hy)
-        int cost = atributsAgent(6, 4, 600, 50, 23, 5, 3);
+        int cost = atributsAgent(6, 4, 600, 30, 23, 5, 3);
         System.out.println("Cost total:" + cost);
 
         // Inicialització de variables que utilitzaré al meu comportament
