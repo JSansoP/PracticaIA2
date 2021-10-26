@@ -2,6 +2,7 @@ package agents;
 
 // Exemple de Bitxo
 import java.util.Random;
+import java.time.Instant;
 
 public class Bitxo27 extends Agent {
 
@@ -13,21 +14,13 @@ public class Bitxo27 extends Agent {
     static final int CENTRAL = 1;
     static final int DRETA = 2;
 
-    static final int A_ENRERE = 1;
-    static final int A_ENDAVANT = 2;
-    static final int A_DRETA = 3;
-    static final int A_ESQUERRA = 4;
-
-    static final int DURACIO_ESQUIVA = 6;
-
     Estat estat;
     Random r = new Random();
-    int esquiva = 0;
-    int accio = 0;
-    int repetir = 0;
-
+    int noMirar = 0;
+    int vecesGirado = 0;
+    int contadorColision = 0;
     public Bitxo27(Agents pare) {
-        super(pare, "Nou", "imatges/robotank1.gif");
+        super(pare, "Nuevo", "imatges/robotank1.gif");
     }
 
     @Override
@@ -38,51 +31,40 @@ public class Bitxo27 extends Agent {
 
         // Inicialització de variables que utilitzaré al meu comportament
     }
+    int girar = 0;
 
     @Override
     public void avaluaComportament() {
         estat = estatCombat();
-        if (repetir != 0) {
-            repetir();
-            repetir--;
-        } else if (esquiva != 0) {
-            esquiva();
+        if (noMirar == 0) {
+            mirar();
         } else {
-            gestionarComida();
-            gestionarPared();
-            gestionarColisio();
+            noMirar--;
         }
+        camina();
     }
-
-    private void repetir() {
-        atura();
-        switch (accio) {
-            case A_ENRERE:
-                enrere();
-                break;
-            case A_ENDAVANT:
-                endavant();
-                break;
-            case A_DRETA:
-                dreta();
-                break;
-            case A_ESQUERRA:
-                esquerra();
-                break;
-        }
-    }
-
-    private void gestionarColisio() {
+    /**
+     * El método camina s'encarrega del desplaçament del nostre agent a través
+     * del entorn, evitant les colisions amb les parets i els enemics, esquivant 
+     * les esquines i finalment proporciona un moviment controlat i estable
+     */
+    private void camina() {
+        //Miram si esteim en col·lisió 
         if (estat.enCollisio) {
             atura();
             enrere();
-            repetir = 4;
-            accio = A_ENRERE;
+            contadorColision++;
+            noMirar = 5;
         }
-    }
-
-    private void gestionarPared() {
-        if (hiHaParet(20)) {
+        //Si duim un temps molt baix en col·lisió activam el hiperespai 
+        if(contadorColision>=10){
+            hyperespai();
+            contadorColision = 0;
+        }
+        //Si tenim una paret relativament a prop de noltros comencem a girar cap 
+        //a la dreta o esquerra en funcio a la distancia que estroben els visors
+        //de la esquerra i de la dreta
+        if (hiHaParet(25)) {
             if (estat.objecteVisor[CENTRAL] == PARET) {
                 if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
                     atura();
@@ -93,81 +75,80 @@ public class Bitxo27 extends Agent {
                     gira((20 + r.nextInt(20)) * -1);
                     endavant();
                 }
-            }
+                noMirar = 2;
 
-        } else if (hiHaParet(25) && Math.abs(estat.distanciaVisors[ESQUERRA] - estat.distanciaVisors[DRETA]) > 50) {
-            if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
-                System.out.println("Esquiv esquerra");
-                //setDireccioEsquiva(A_ESQUERRA);
-                repetir = 3;
-                accio = A_ESQUERRA;
-            } else {
-                System.out.println("Esquiv dreta");
-                //setDireccioEsquiva(A_DRETA);
-                repetir = 3;
-                accio = A_DRETA;
-            }
-        } else if (hiHaParet(85) && estat.distanciaVisors[CENTRAL] < 85) {
-            if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
+            } else { 
+                //Si el visor central no veu una paret, pero un dels altres
+                //visors veu una paret esquivam aquesta paret fent un petit gir
+                //cap a un costat i guardam les vegades que hem girat per aixì
+                //després poder continuar amb el mateix sentit
                 atura();
+                if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
+                    esquerra();
+                    vecesGirado--;
+                } else {
+                    dreta();
+                    vecesGirado++;
+                }
+                System.out.println("Girando:" + vecesGirado);
+                endavant();
+            }
+            //Mos tornam a colocar a nes mateix sentit que estàvem abans de 
+            //esquivar una paret
+        } else if (vecesGirado != 0) {
+            atura();
+            if (vecesGirado > 0) {
                 esquerra();
-                endavant();
+                vecesGirado--;
+                noMirar++;
             } else {
-                atura();
                 dreta();
+                vecesGirado++;
+            }
+            System.out.println("Desgirando:" + vecesGirado);
+            endavant();
+            //Miram si tenim una paret a una distància llunyana per aixì anar 
+            //preparnat el gir cap a la dreta o esquerra en funcio a les distàncies
+            //dels visors
+        } else if (hiHaParet(85)) {
+            if (estat.distanciaVisors[CENTRAL] < 85) {
+                if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
+                    atura();
+                    esquerra();
+                    endavant();
+                } else {
+                    atura();
+                    dreta();
+                    endavant();
+                }
+
+            } else{
+                atura();
                 endavant();
             }
-        } else if (hiHaBitxo (100)){
-            this.disparant();
-        }else {
+            //Si el nostre visor veu un enemic a una distancia de 100 dispara
+        }else if (hiHaBitxo(100)){
+            atura();
+            noMirar++;
+            endavant();
+        }
+        //Sino si vemos que nos estan apuntando, incrementamos la velocidad para
+        //esquivar durante 2 seg
+        else if (estat.llançamentEnemicDetectat){ 
+            atura();
+            activaEscut();
+            noMirar++;
+            endavant();
+        }
+        else {
             atura();
             endavant();
         }
     }
-
-    private void gestionarComida() {
-        mirar(); //Miramos a la comida o escudo más cercanos
-        int aux = comidaEnem();
-        switch (aux) {
-            case 2: //SI esta en el sector izquierdo esquivamos por la derecha y viceversa
-                setDireccioEsquiva(A_DRETA);
-                break;
-            case 3:
-                setDireccioEsquiva(A_ESQUERRA);
-                break;
-            case 0:
-                endavant();
-        }
-    }
-
-
-    private void setDireccioEsquiva(int direccio) {
-        if (direccio == A_DRETA) {
-            esquiva = DURACIO_ESQUIVA;
-        } else {
-            esquiva = -DURACIO_ESQUIVA;
-        }
-    }
-
-    private void esquiva() {
-        atura();
-        if (esquiva > 0) {
-            if (esquiva > DURACIO_ESQUIVA / 2) {
-                dreta();
-            } else {
-                esquerra();
-            }
-            esquiva--;
-        } else {
-            if (esquiva < -DURACIO_ESQUIVA / 2) {
-                esquerra();
-            } else {
-                dreta();
-            }
-            esquiva++;
-        }
-        endavant();
-    }
+    /**
+     * Métode que s'encarrega de cercar els recursos enemics dins l'entern
+     * @return 
+     */
     private int comidaEnem() {
         if (estat.veigAlgunRecurs) {
             for (int i = 0; i < estat.numObjectes; i++) {
@@ -179,12 +160,15 @@ public class Bitxo27 extends Agent {
         }
         return 0;
     }
-
+    /**
+     * Métode que s'encarrega de cercar els nostres recursos i els escuts dins
+     * l'entorn 
+     */
     private void mirar() {
         Objecte fin = null;
+        int distMin = 9999999;
         if (estat.veigAlgunRecurs || estat.veigAlgunEscut) {
-            int distMin = 9999999;
-            for (int i = 0; i < estat.numObjectes; i++) {
+            for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els recursos
                 Objecte aux = estat.objectes[i];
                 if (aux.agafaTipus() == 100 + estat.id || aux.agafaTipus() == Estat.ESCUT) {
                     if (distMin > aux.agafaDistancia()) {
@@ -193,23 +177,59 @@ public class Bitxo27 extends Agent {
                     }
                 }
             }
-            mira(fin);
         }
-    }
+        //Miram si tenim algun recurs enemic a prop i si es aquest cas activam 
+        //el escut
+        for (int i = 0; i < estat.numObjectes; i++) {
+            Objecte aux = estat.objectes[i];
+            if (aux.agafaTipus() >= 100 && aux.agafaTipus() != 100 + estat.id) {
+                if (aux.agafaDistancia() < 30) {
 
+                    fin = aux;
+                    if (!estat.escutActivat) {
+                        activaEscut();
+                    }
+                    break;
+                }
+            }
+        }
+                //el escut
+        for (int i = 0; i < estat.numObjectes; i++) {
+            Objecte aux = estat.objectes[i];
+            if (aux.agafaTipus() == Estat.AGENT) {
+                if (aux.agafaDistancia() < 100) {
+                    fin = aux;
+                    llança();
+                    break;
+                }
+            }
+        }
+        mira(fin);
+
+    }
+    /**
+     * Métode que s'encarrega de retornar si el nostre agent veu una paret a una 
+     * distància que reb per paràmetre 
+     * @param distancia
+     * @return 
+     */
     private boolean hiHaParet(int distancia) {
 
         return (estat.objecteVisor[ESQUERRA] == PARET && estat.distanciaVisors[ESQUERRA] < distancia)
                 || (estat.objecteVisor[CENTRAL] == PARET && estat.distanciaVisors[CENTRAL] < distancia)
                 || (estat.objecteVisor[DRETA] == PARET && estat.distanciaVisors[DRETA] < distancia);
     }
-
-    
+        /**
+     * Métode que s'encarrega de retornar si el nostre agent veu una paret a una 
+     * distància que reb per paràmetre 
+     * @param distancia
+     * @return 
+     */
     private boolean hiHaBitxo(int distancia) {
 
-    return (estat.objecteVisor[ESQUERRA] == BITXO && estat.distanciaVisors[ESQUERRA] < distancia)
-            || (estat.objecteVisor[CENTRAL] == BITXO && estat.distanciaVisors[CENTRAL] < distancia)
-            || (estat.objecteVisor[DRETA] == BITXO && estat.distanciaVisors[DRETA] < distancia);
+        return (estat.objecteVisor[ESQUERRA] == BITXO && estat.distanciaVisors[ESQUERRA] < distancia)
+                || (estat.objecteVisor[CENTRAL] == BITXO && estat.distanciaVisors[CENTRAL] < distancia)
+                || (estat.objecteVisor[DRETA] == BITXO && estat.distanciaVisors[DRETA] < distancia);
     }
     
 }
