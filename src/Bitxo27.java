@@ -117,7 +117,9 @@ public class Bitxo27 extends Agent {
                 dreta();
                 endavant();
             }
-        } else {
+        } else if (hiHaBitxo (100)){
+            this.disparant();
+        }else {
             atura();
             endavant();
         }
@@ -137,6 +139,7 @@ public class Bitxo27 extends Agent {
                 endavant();
         }
     }
+
 
     private void setDireccioEsquiva(int direccio) {
         if (direccio == A_DRETA) {
@@ -165,7 +168,6 @@ public class Bitxo27 extends Agent {
         }
         endavant();
     }
-
     private int comidaEnem() {
         if (estat.veigAlgunRecurs) {
             for (int i = 0; i < estat.numObjectes; i++) {
@@ -202,4 +204,12 @@ public class Bitxo27 extends Agent {
                 || (estat.objecteVisor[DRETA] == PARET && estat.distanciaVisors[DRETA] < distancia);
     }
 
+    
+    private boolean hiHaBitxo(int distancia) {
+
+    return (estat.objecteVisor[ESQUERRA] == BITXO && estat.distanciaVisors[ESQUERRA] < distancia)
+            || (estat.objecteVisor[CENTRAL] == BITXO && estat.distanciaVisors[CENTRAL] < distancia)
+            || (estat.objecteVisor[DRETA] == BITXO && estat.distanciaVisors[DRETA] < distancia);
+    }
+    
 }
