@@ -13,6 +13,7 @@ public class Bitxo27 extends Agent {
     static final int ESQUERRA = 0;
     static final int CENTRAL = 1;
     static final int DRETA = 2;
+    
 
     Estat estat;
     Random r = new Random();
@@ -20,9 +21,8 @@ public class Bitxo27 extends Agent {
     int vecesGirado = 0;
     int contadorColision = 0;
     final int distMaxBales = 400;
-    int contadorGiro = 100;
+    int contadorGiro = 90;
     int recursosAnterior = 0;
-    boolean vemos = false;
 
     public Bitxo27(Agents pare) {
         super(pare, "JAJ", "imatges/robotank1.gif");
@@ -31,7 +31,7 @@ public class Bitxo27 extends Agent {
     @Override
     public void inicia() {
         // atributsAgents(v,w,dv,av,ll,es,hy)
-        int cost = atributsAgent(6, 4, 600, 30, 23, 5, 3);
+        int cost = atributsAgent(6, 7, 600, 30, 23, 5, 3);
         System.out.println("Cost total:" + cost);
 
         // Inicialització de variables que utilitzaré al meu comportament
@@ -41,19 +41,17 @@ public class Bitxo27 extends Agent {
     @Override
     public void avaluaComportament() {
         estat = estatCombat();
-        if (recursosAnterior < estat.recursosAgafats) {
-            vemos = false;
-            recursosAnterior = estat.recursosAgafats;
-        }
+//        if (recursosAnterior < estat.recursosAgafats) {
+//            vemos = false;
+//            recursosAnterior = estat.recursosAgafats;
+//        }
         camina();
-        comidaEnem();
+        evaluarDisparo();
         if (noMirar == 0) {
             mirar();
         } else {
             noMirar--;
         }
-
-        camina();
     }
 
     /**
@@ -70,11 +68,11 @@ public class Bitxo27 extends Agent {
             noMirar = 5;
         }
         //Si duim un temps molt baix en col·lisió activam el hiperespai 
-        if (contadorColision >= 10) {
+        if (contadorColision >= 20) {
             hyperespai();
             contadorColision = 0;
         }
-        if(contadorGiro <= 0 && vemos == false){
+        if (contadorGiro <= 0) {
             giroRecon();
         }
         //Si tenim una paret relativament a prop de noltros comencem a girar cap 
@@ -143,12 +141,18 @@ public class Bitxo27 extends Agent {
                 endavant();
             }
 
+        } //Sino si vemos que nos estan apuntando, incrementamos la velocidad para
+        //esquivar durante 2 seg
+        else if (estat.llançamentEnemicDetectat) {
+            atura();
+            activaEscut();
+            noMirar = 5;
+            endavant();
         } else {
             atura();
             endavant();
         }
 
-        contadorGiro--;
         System.out.println(contadorGiro);
     }
 
@@ -157,14 +161,17 @@ public class Bitxo27 extends Agent {
      *
      * @return
      */
-    private void comidaEnem() {
+    private void evaluarDisparo() {
         Objecte fin = null;
         int distMin = 9999999;
-        if (estat.veigAlgunRecurs) {
-            for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els recursos
+        if (!estat.llançant && (estat.veigAlgunRecurs || estat.veigAlgunEnemic)) {
+            for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els objectes
                 Objecte aux = estat.objectes[i];
-                if (aux.agafaTipus() >= 100 && aux.agafaTipus() != (100 + estat.id) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales) {
-                    if (distMin > aux.agafaDistancia()) {
+                if (((aux.agafaTipus() >= 100 && aux.agafaTipus() != (100 + estat.id)) || aux.agafaTipus() == Estat.AGENT) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales) {
+                    if (aux.agafaTipus() == Estat.AGENT && aux.agafaDistancia() <= 100) {
+                        fin = aux;
+                        break;
+                    } else if (distMin > aux.agafaDistancia()) {
                         distMin = aux.agafaDistancia();
                         fin = aux;
                     }
@@ -197,10 +204,19 @@ public class Bitxo27 extends Agent {
         }
         if (fin != null) {
             mira(fin);
-            vemos = true;
+        } else {
+            contadorGiro--;
         }
 
     }
+
+    private boolean hiHaBitxo(int distancia) {
+
+        return (estat.objecteVisor[ESQUERRA] == BITXO && estat.distanciaVisors[ESQUERRA] < distancia)
+                || (estat.objecteVisor[CENTRAL] == BITXO && estat.distanciaVisors[CENTRAL] < distancia)
+                || (estat.objecteVisor[DRETA] == BITXO && estat.distanciaVisors[DRETA] < distancia);
+    }
+
     /**
      * Método que se encarga de hacer un giro de reconocimiento
      */
@@ -208,7 +224,7 @@ public class Bitxo27 extends Agent {
         atura();
         gira(180);
         endavant();
-        contadorGiro = 100;
+        contadorGiro = 90;
         System.out.println("Giramos");
     }
 
