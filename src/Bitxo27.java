@@ -20,6 +20,10 @@ public class Bitxo27 extends Agent {
     int vecesGirado = 0;
     int contadorColision = 0;
     final int distMaxBales = 400;
+    int contadorGiro = 100;
+    int recursosAnterior = 0;
+    boolean vemos = false;
+
     public Bitxo27(Agents pare) {
         super(pare, "JAJ", "imatges/robotank1.gif");
     }
@@ -37,6 +41,10 @@ public class Bitxo27 extends Agent {
     @Override
     public void avaluaComportament() {
         estat = estatCombat();
+        if (recursosAnterior < estat.recursosAgafats) {
+            vemos = false;
+            recursosAnterior = estat.recursosAgafats;
+        }
         camina();
         comidaEnem();
         if (noMirar == 0) {
@@ -44,12 +52,13 @@ public class Bitxo27 extends Agent {
         } else {
             noMirar--;
         }
-        
+
         camina();
     }
+
     /**
      * El método camina s'encarrega del desplaçament del nostre agent a través
-     * del entorn, evitant les colisions amb les parets i els enemics, esquivant 
+     * del entorn, evitant les colisions amb les parets i els enemics, esquivant
      * les esquines i finalment proporciona un moviment controlat i estable
      */
     private void camina() {
@@ -61,9 +70,12 @@ public class Bitxo27 extends Agent {
             noMirar = 5;
         }
         //Si duim un temps molt baix en col·lisió activam el hiperespai 
-        if(contadorColision>=10){
+        if (contadorColision >= 10) {
             hyperespai();
             contadorColision = 0;
+        }
+        if(contadorGiro <= 0 && vemos == false){
+            giroRecon();
         }
         //Si tenim una paret relativament a prop de noltros comencem a girar cap 
         //a la dreta o esquerra en funcio a la distancia que estroben els visors
@@ -81,7 +93,7 @@ public class Bitxo27 extends Agent {
                 }
                 noMirar = 2;
 
-            } else { 
+            } else {
                 //Si el visor central no veu una paret, pero un dels altres
                 //visors veu una paret esquivam aquesta paret fent un petit gir
                 //cap a un costat i guardam les vegades que hem girat per aixì
@@ -94,7 +106,7 @@ public class Bitxo27 extends Agent {
                     dreta();
                     vecesGirado++;
                 }
-                System.out.println("Girando:" + vecesGirado);
+                //System.out.println("Girando:" + vecesGirado);
                 endavant();
             }
             //Mos tornam a colocar a nes mateix sentit que estàvem abans de 
@@ -109,7 +121,7 @@ public class Bitxo27 extends Agent {
                 dreta();
                 vecesGirado++;
             }
-            System.out.println("Desgirando:" + vecesGirado);
+            //System.out.println("Desgirando:" + vecesGirado);
             endavant();
             //Miram si tenim una paret a una distància llunyana per aixì anar 
             //preparnat el gir cap a la dreta o esquerra en funcio a les distàncies
@@ -126,7 +138,7 @@ public class Bitxo27 extends Agent {
                     endavant();
                 }
 
-            } else{
+            } else {
                 atura();
                 endavant();
             }
@@ -135,10 +147,15 @@ public class Bitxo27 extends Agent {
             atura();
             endavant();
         }
+
+        contadorGiro--;
+        System.out.println(contadorGiro);
     }
+
     /**
      * Métode que s'encarrega de cercar els recursos enemics dins l'entern
-     * @return 
+     *
+     * @return
      */
     private void comidaEnem() {
         Objecte fin = null;
@@ -146,7 +163,7 @@ public class Bitxo27 extends Agent {
         if (estat.veigAlgunRecurs) {
             for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els recursos
                 Objecte aux = estat.objectes[i];
-                if (aux.agafaTipus() >= 100 && aux.agafaTipus() != (100 + estat.id) && (aux.agafaSector() ==2 || aux.agafaSector()==3) && aux.agafaDistancia()<distMaxBales) {
+                if (aux.agafaTipus() >= 100 && aux.agafaTipus() != (100 + estat.id) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales) {
                     if (distMin > aux.agafaDistancia()) {
                         distMin = aux.agafaDistancia();
                         fin = aux;
@@ -154,14 +171,15 @@ public class Bitxo27 extends Agent {
                 }
             }
         }
-        if(fin != null && estat.llançaments>0 && !estat.llançant){
+        if (fin != null && estat.llançaments > 0 && !estat.llançant) {
             mira(fin);
             llança();
         }
     }
+
     /**
      * Métode que s'encarrega de cercar els nostres recursos i els escuts dins
-     * l'entorn 
+     * l'entorn
      */
     private void mirar() {
         Objecte fin = null;
@@ -177,14 +195,29 @@ public class Bitxo27 extends Agent {
                 }
             }
         }
-        mira(fin);
+        if (fin != null) {
+            mira(fin);
+            vemos = true;
+        }
 
     }
     /**
-     * Métode que s'encarrega de retornar si el nostre agent veu una paret a una 
-     * distància que reb per paràmetre 
+     * Método que se encarga de hacer un giro de reconocimiento
+     */
+    public void giroRecon() {
+        atura();
+        gira(180);
+        endavant();
+        contadorGiro = 100;
+        System.out.println("Giramos");
+    }
+
+    /**
+     * Métode que s'encarrega de retornar si el nostre agent veu una paret a una
+     * distància que reb per paràmetre
+     *
      * @param distancia
-     * @return 
+     * @return
      */
     private boolean hiHaParet(int distancia) {
 
@@ -192,5 +225,5 @@ public class Bitxo27 extends Agent {
                 || (estat.objecteVisor[CENTRAL] == PARET && estat.distanciaVisors[CENTRAL] < distancia)
                 || (estat.objecteVisor[DRETA] == PARET && estat.distanciaVisors[DRETA] < distancia);
     }
-    
+
 }
