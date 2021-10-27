@@ -18,13 +18,12 @@ public class Bitxo27 extends Agent {
     Random r = new Random();
     int noMirar = 0;
     int vecesGirado = 0;
-    int contadorColision = 0;
     final int distMaxBales = 400;
     int contadorGiro = 90;
     int recursosAnterior = 0;
 
     public Bitxo27(Agents pare) {
-        super(pare, "JAJ", "imatges/robotank1.gif");
+        super(pare, "dispara", "imatges/robotank1.gif");
     }
 
     @Override
@@ -40,13 +39,10 @@ public class Bitxo27 extends Agent {
     @Override
     public void avaluaComportament() {
         estat = estatCombat();
-//        if (recursosAnterior < estat.recursosAgafats) {
-//            vemos = false;
-//            recursosAnterior = estat.recursosAgafats;
-//        }
+        atura();
         camina();
-        evaluarDisparo();
         if (noMirar == 0) {
+            evaluarDisparo();
             mirar();
         } else {
             noMirar--;
@@ -61,22 +57,26 @@ public class Bitxo27 extends Agent {
     private void camina() {
         //Miram si esteim en col·lisió 
         if (estat.enCollisio) {
-            atura();
-            enrere();
-            contadorColision++;
-            noMirar = 5;
-        }
-        //Si duim un temps molt baix en col·lisió activam el hiperespai 
-        if (contadorColision >= 20) {
-            if (!estat.escutActivat) {
-                activaEscut();
+            boolean a = r.nextBoolean();
+            if (a) {
+                esquerra();
+            } else {
+                dreta();
             }
-            hyperespai();
-            contadorColision = 0;
-        }
+
+            a = r.nextBoolean();
+            if (a) {
+                endavant();
+            } else {
+                enrere();
+
+            }
+            noMirar = 5;   
+        }  else
+        
         if (contadorGiro <= 0) {
             giroRecon();
-        }
+        } else
         //Si tenim una paret relativament a prop de noltros comencem a girar cap 
         //a la dreta o esquerra en funcio a la distancia que estroben els visors
         //de la esquerra i de la dreta
@@ -187,6 +187,7 @@ public class Bitxo27 extends Agent {
         if (fin != null && estat.llançaments > 0 && !estat.llançant) {
             mira(fin);
             llança();
+            
         }
     }
 

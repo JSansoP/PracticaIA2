@@ -44,8 +44,9 @@ public class Bitxo28 extends Agent {
 //            vemos = false;
 //            recursosAnterior = estat.recursosAgafats;
 //        }
+        atura();
         camina();
-        evaluarDisparo();
+        //evaluarDisparo();
         if (noMirar == 0) {
             mirar();
         } else {
@@ -61,22 +62,25 @@ public class Bitxo28 extends Agent {
     private void camina() {
         //Miram si esteim en col·lisió 
         if (estat.enCollisio) {
-            atura();
-            enrere();
-            contadorColision++;
-            noMirar = 5;
-        }
-        //Si duim un temps molt baix en col·lisió activam el hiperespai 
-        if (contadorColision >= 20) {
-            if(!estat.escutActivat){
-                activaEscut();
+            boolean a = r.nextBoolean();
+            if (a) {
+                esquerra();
+            } else {
+                dreta();
             }
-            hyperespai();
-            contadorColision = 0;
-        }
-        if (contadorGiro <= 0) {
+
+            a = r.nextBoolean();
+            if (a) {
+                endavant();
+            } else {
+                enrere();
+
+            }
+        } else
+        
+        /*if (contadorGiro <= 0) {
             giroRecon();
-        }
+        }*/
         //Si tenim una paret relativament a prop de noltros comencem a girar cap 
         //a la dreta o esquerra en funcio a la distancia que estroben els visors
         //de la esquerra i de la dreta
@@ -176,7 +180,7 @@ public class Bitxo28 extends Agent {
                     if (aux.agafaTipus() == Estat.AGENT && aux.agafaDistancia() <= 100) {
                         fin = aux;
                         break;
-                    } else if (distMin > aux.agafaDistancia()) { 
+                    } else if (distMin > aux.agafaDistancia()) {
                         distMin = aux.agafaDistancia();
                         fin = aux;
                     }
