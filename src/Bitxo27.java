@@ -13,7 +13,6 @@ public class Bitxo27 extends Agent {
     static final int ESQUERRA = 0;
     static final int CENTRAL = 1;
     static final int DRETA = 2;
-    
 
     Estat estat;
     Random r = new Random();
@@ -31,7 +30,7 @@ public class Bitxo27 extends Agent {
     @Override
     public void inicia() {
         // atributsAgents(v,w,dv,av,ll,es,hy)
-        int cost = atributsAgent(6, 7, 600, 30, 23, 5, 3);
+        int cost = atributsAgent(6, 7, 600, 50, 23, 5, 3);
         System.out.println("Cost total:" + cost);
 
         // Inicialització de variables que utilitzaré al meu comportament
@@ -69,6 +68,9 @@ public class Bitxo27 extends Agent {
         }
         //Si duim un temps molt baix en col·lisió activam el hiperespai 
         if (contadorColision >= 20) {
+            if (!estat.escutActivat) {
+                activaEscut();
+            }
             hyperespai();
             contadorColision = 0;
         }
@@ -78,7 +80,7 @@ public class Bitxo27 extends Agent {
         //Si tenim una paret relativament a prop de noltros comencem a girar cap 
         //a la dreta o esquerra en funcio a la distancia que estroben els visors
         //de la esquerra i de la dreta
-        if (hiHaParet(25)) {
+        if (hiHaParet(35)) {
             if (estat.objecteVisor[CENTRAL] == PARET) {
                 if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
                     atura();
@@ -118,6 +120,8 @@ public class Bitxo27 extends Agent {
             } else {
                 dreta();
                 vecesGirado++;
+                noMirar++;
+
             }
             //System.out.println("Desgirando:" + vecesGirado);
             endavant();
@@ -143,10 +147,12 @@ public class Bitxo27 extends Agent {
 
         } //Sino si vemos que nos estan apuntando, incrementamos la velocidad para
         //esquivar durante 2 seg
-        else if (estat.llançamentEnemicDetectat) {
+        else if (estat.llançamentEnemicDetectat && !estat.escutActivat) {
             atura();
-            activaEscut();
-            noMirar = 5;
+            if (estat.distanciaLlançamentEnemic < 30) {
+                activaEscut();
+                noMirar = 5;
+            }
             endavant();
         } else {
             atura();
@@ -222,7 +228,11 @@ public class Bitxo27 extends Agent {
      */
     public void giroRecon() {
         atura();
-        gira(180);
+        if (r.nextBoolean()) {
+            gira(120);
+        } else {
+            gira(-120);
+        }
         endavant();
         contadorGiro = 90;
         System.out.println("Giramos");

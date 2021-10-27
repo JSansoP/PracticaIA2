@@ -13,7 +13,6 @@ public class Bitxo28 extends Agent {
     static final int ESQUERRA = 0;
     static final int CENTRAL = 1;
     static final int DRETA = 2;
-    
 
     Estat estat;
     Random r = new Random();
@@ -69,6 +68,9 @@ public class Bitxo28 extends Agent {
         }
         //Si duim un temps molt baix en col·lisió activam el hiperespai 
         if (contadorColision >= 20) {
+            if(!estat.escutActivat){
+                activaEscut();
+            }
             hyperespai();
             contadorColision = 0;
         }
@@ -146,8 +148,10 @@ public class Bitxo28 extends Agent {
         //esquivar durante 2 seg
         else if (estat.llançamentEnemicDetectat && !estat.escutActivat) {
             atura();
-            activaEscut();
-            noMirar = 5;
+            if (estat.distanciaLlançamentEnemic < 30) {
+                activaEscut();
+                noMirar = 5;
+            }
             endavant();
         } else {
             atura();
@@ -172,7 +176,7 @@ public class Bitxo28 extends Agent {
                     if (aux.agafaTipus() == Estat.AGENT && aux.agafaDistancia() <= 100) {
                         fin = aux;
                         break;
-                    } else if (distMin > aux.agafaDistancia()) {
+                    } else if (distMin > aux.agafaDistancia()) { 
                         distMin = aux.agafaDistancia();
                         fin = aux;
                     }
@@ -223,7 +227,11 @@ public class Bitxo28 extends Agent {
      */
     public void giroRecon() {
         atura();
-        gira(160+r.nextInt(40));
+        if (r.nextBoolean()) {
+            gira(120);
+        } else {
+            gira(-120);
+        }
         endavant();
         contadorGiro = 90;
         System.out.println("Giramos");
