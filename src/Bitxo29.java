@@ -4,7 +4,7 @@ package agents;
 import java.util.Random;
 import java.time.Instant;
 
-public class Bitxo28 extends Agent {
+public class Bitxo29 extends Agent {
 
     static final int PARET = 0;
     static final int BITXO = 1;
@@ -18,18 +18,19 @@ public class Bitxo28 extends Agent {
     Random r = new Random();
     int noMirar = 0;
     int vecesGirado = 0;
+    int contadorColision = 0;
     final int distMaxBales = 400;
     int contadorGiro = 90;
     int recursosAnterior = 0;
 
-    public Bitxo28(Agents pare) {
-        super(pare, "dispara2", "imatges/robotank1.gif");
+    public Bitxo29(Agents pare) {
+        super(pare, "JAJ", "imatges/robotank1.gif");
     }
 
     @Override
     public void inicia() {
         // atributsAgents(v,w,dv,av,ll,es,hy)
-        int cost = atributsAgent(6, 7, 600, 45, 23, 5, 3);
+        int cost = atributsAgent(6, 7, 600, 30, 23, 5, 3);
         System.out.println("Cost total:" + cost);
 
         // Inicialització de variables que utilitzaré al meu comportament
@@ -39,10 +40,14 @@ public class Bitxo28 extends Agent {
     @Override
     public void avaluaComportament() {
         estat = estatCombat();
+//        if (recursosAnterior < estat.recursosAgafats) {
+//            vemos = false;
+//            recursosAnterior = estat.recursosAgafats;
+//        }
         atura();
         camina();
+        //evaluarDisparo();
         if (noMirar == 0) {
-            evaluarDisparo();
             mirar();
         } else {
             noMirar--;
@@ -71,13 +76,12 @@ public class Bitxo28 extends Agent {
                 enrere();
 
             }
-            noMirar = 5;
-        } else if (contadorGiro <= 0) {
+        } else /*if (contadorGiro <= 0) {
             giroRecon();
-        } else //Si tenim una paret relativament a prop de noltros comencem a girar cap 
+        }*/ //Si tenim una paret relativament a prop de noltros comencem a girar cap 
         //a la dreta o esquerra en funcio a la distancia que estroben els visors
         //de la esquerra i de la dreta
-        if (hiHaParet(30)) {
+        if (hiHaParet(25)) {
             if (estat.objecteVisor[CENTRAL] == PARET) {
                 if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
                     atura();
@@ -118,7 +122,6 @@ public class Bitxo28 extends Agent {
                 dreta();
                 vecesGirado++;
                 noMirar++;
-
             }
             //System.out.println("Desgirando:" + vecesGirado);
             endavant();
@@ -171,7 +174,7 @@ public class Bitxo28 extends Agent {
             for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els objectes
                 Objecte aux = estat.objectes[i];
                 if (((aux.agafaTipus() >= 100 && aux.agafaTipus() != (100 + estat.id)) || aux.agafaTipus() == Estat.AGENT) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales) {
-                    if (aux.agafaTipus() == Estat.AGENT && aux.agafaDistancia() <= 70) {
+                    if (aux.agafaTipus() == Estat.AGENT && aux.agafaDistancia() <= 80) {
                         fin = aux;
                         break;
                     } else if (distMin > aux.agafaDistancia()) {
@@ -182,17 +185,8 @@ public class Bitxo28 extends Agent {
             }
         }
         if (fin != null && estat.llançaments > 0 && !estat.llançant) {
-            if (fin.agafaTipus() == Estat.AGENT && fin.agafaDistancia() <= 70) {
-                mira(fin);
-
-                llança();
-
-            } else if (fin.agafaTipus() != Estat.AGENT) {
-                mira(fin);
-
-                llança();
-
-            }
+            mira(fin);
+            llança();
 
         }
     }
@@ -207,7 +201,7 @@ public class Bitxo28 extends Agent {
         if (estat.veigAlgunRecurs || estat.veigAlgunEscut) {
             for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els recursos
                 Objecte aux = estat.objectes[i];
-                if (aux.agafaTipus() == 100 + estat.id /*|| aux.agafaTipus() == Estat.ESCUT*/) {
+                if (aux.agafaTipus() == 100 + estat.id || aux.agafaTipus() == Estat.ESCUT) {
                     if (distMin > aux.agafaDistancia()) {
                         distMin = aux.agafaDistancia();
                         fin = aux;
