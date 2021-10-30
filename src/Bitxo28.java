@@ -13,17 +13,19 @@ public class Bitxo28 extends Agent {
     static final int ESQUERRA = 0;
     static final int CENTRAL = 1;
     static final int DRETA = 2;
+    
+    static final int tiempoGiro  = 120;
 
     Estat estat;
     Random r = new Random();
     int noMirar = 0;
     int vecesGirado = 0;
     final int distMaxBales = 400;
-    int contadorGiro = 90;
+    int contadorGiro = tiempoGiro;
     int recursosAnterior = 0;
 
     public Bitxo28(Agents pare) {
-        super(pare, "dispara2", "imatges/robotank1.gif");
+        super(pare, "dispara", "imatges/robotank1.gif");
     }
 
     @Override
@@ -56,7 +58,7 @@ public class Bitxo28 extends Agent {
      */
     private void camina() {
         //Miram si esteim en col·lisió 
-        if (estat.enCollisio) {
+        if (estat.enCollisio) { 
             boolean a = r.nextBoolean();
             if (a) {
                 esquerra();
@@ -241,7 +243,7 @@ public class Bitxo28 extends Agent {
             gira(-120);
         }
         endavant();
-        contadorGiro = 90;
+        contadorGiro = tiempoGiro;
         System.out.println("Giramos");
     }
 
