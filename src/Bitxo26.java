@@ -27,7 +27,7 @@ public class Bitxo26 extends Agent {
     int comptadorDispar = 0;
 
     public Bitxo26(Agents pare) {
-        super(pare, "Exemple26", "imatges/robotank1.gif");
+        super(pare, "Exemple26", "imatges/hipnotizar.gif");
     }
 
     @Override
