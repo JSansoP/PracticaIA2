@@ -15,13 +15,15 @@ public class Bitxo26 extends Agent {
 
     //Declaració de variables 
     
-    static final int distMaxBales = 400;
+    final int distMaxBales = 400;
+    final int distMaxEnemic = 120;
+    final int resetGiro = 120;
     Estat estat;
     Random r = new Random();
     int comptadorGir = 120;
     int noMirar = 0;
     int comptadorColisio = 0;
-    int recursosAnterior = 0;
+    int impactesAnterior = 0;
     int comptadorDispar = 0;
 
     public Bitxo26(Agents pare) {
@@ -34,7 +36,7 @@ public class Bitxo26 extends Agent {
         int cost = atributsAgent(6, 5, 600, 45, 23, 5, 3);
         System.out.println("Cost total:" + cost);
         comptadorDispar = 0;
-        recursosAnterior = 0;
+        impactesAnterior = 0;
         comptadorColisio = 0;
         noMirar = 0;
         comptadorGir = 120;
@@ -57,7 +59,7 @@ public class Bitxo26 extends Agent {
             llança();
             System.out.println("miramosrecurso");
         }
-        if (noMirar == 0 && fin2 == null) {
+        if (noMirar <= 0 && fin2 == null) {
             miraRecurs();
         } else {
             noMirar--;
@@ -114,18 +116,18 @@ public class Bitxo26 extends Agent {
     
     private void gestionarEnemic() {
         if (estat.llançamentEnemicDetectat && !estat.escutActivat) {
-            if (estat.distanciaLlançamentEnemic < 30) {
+            if (estat.distanciaLlançamentEnemic < 40) {
                 activaEscut();
-                noMirar = 5;
+                noMirar = 5; //QUITAMOS?
             }
             endavant();
         }
-        if (recursosAnterior > estat.recursosAgafats) {
+        if (impactesAnterior < estat.impactesRebuts) {
             if (!estat.escutActivat) {
                 activaEscut();
             }
         }
-        recursosAnterior = estat.recursosAgafats;
+        impactesAnterior = estat.impactesRebuts;
 
     }
     
@@ -234,7 +236,8 @@ public class Bitxo26 extends Agent {
         if (!estat.llançant && (estat.veigAlgunRecurs || estat.veigAlgunEnemic)) {
             for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els objectes
                 Objecte aux = estat.objectes[i];
-                if ((aux.agafaTipus() == Estat.AGENT) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales && aux.agafaDistancia() <= 100) {
+                
+                if ((aux.agafaTipus() == Estat.AGENT) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales && aux.agafaDistancia() <= distMaxEnemic) {
                     fin = aux;
                     return fin;
                 }
@@ -265,12 +268,11 @@ public class Bitxo26 extends Agent {
     private void giraAProp() {
         if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
             atura();
-            gira(20 + r.nextInt(20));
+            gira(10 + r.nextInt(30)*(estat.distanciaVisors[CENTRAL]<70 ? 1:0));
             endavant();
-
         } else {
             atura();
-            gira(-1 * (20 + r.nextInt(20)));
+            gira(-1 * (10 + r.nextInt(30)*(estat.distanciaVisors[CENTRAL]<70 ? 1:0)));
             endavant();
         }
     }
@@ -306,7 +308,7 @@ public class Bitxo26 extends Agent {
             gira(-120);
         }
         endavant();
-        comptadorGir = 120;
+        comptadorGir = resetGiro;
     }
 
     /**
