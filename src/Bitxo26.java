@@ -44,20 +44,19 @@ public class Bitxo26 extends Agent {
         estat = estatCombat();
         atura();
         comptadorDispar--;
-        if (noMirar == 0) {
-            Objecte fin = evaluarDisparMenjar();
-            Objecte fin2 = evaluarDisparEnemic();
-            if (fin2 != null && comptadorDispar < 0) {
-                comptadorDispar = 60;
-                mira(fin2);
-                llança();
-            } else if (fin != null) {
-                mira(fin);
-                llança();
-                System.out.println("miramosrecurso");
-                miraRecurs();
-            }
-
+        Objecte fin = evaluarDisparMenjar();
+        Objecte fin2 = evaluarDisparEnemic();
+        if (fin2 != null && comptadorDispar < 0) {
+            comptadorDispar = 60;
+            mira(fin2);
+            llança();
+        } else if (fin != null) {
+            mira(fin);
+            llança();
+            System.out.println("miramosrecurso");
+        }
+        if (noMirar == 0 && fin2 == null) {
+            miraRecurs();
         } else {
             noMirar--;
         }
@@ -76,7 +75,7 @@ public class Bitxo26 extends Agent {
             if (hiHaParet(30)) {
                 giraAProp();
 
-            } else if (hiHaParet(85) && estat.distanciaVisors[CENTRAL] < 100) {    //Hay una pared relativamente lejos
+            } else if (hiHaParet(85) && estat.distanciaVisors[CENTRAL] < 90) {    //Hay una pared relativamente lejos
                 giraLluny();
 
             } else if (comptadorGir <= 0) {
@@ -156,7 +155,7 @@ public class Bitxo26 extends Agent {
 
         if (fin != null) {
             mira(fin);
-        } else if (estat.veigAlgunRecurs) {
+        } else if (!estat.veigAlgunRecurs && estat.veigAlgunEscut) {
             comptadorGir--;
         }
     }
