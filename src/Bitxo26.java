@@ -13,12 +13,16 @@ public class Bitxo26 extends Agent {
     static final int CENTRAL = 1;
     static final int DRETA = 2;
 
+    static final int distMaxBales = 400;
     Estat estat;
     Random r = new Random();
     int comptadorGir = 120;
+    int noMirar = 0;
+    int comptadorColisio = 0;
+    int recursosAnterior = 0;
 
     public Bitxo26(Agents pare) {
-        super(pare, "Exemple1", "imatges/robotank1.gif");
+        super(pare, "Exemple26", "imatges/robotank1.gif");
     }
 
     @Override
@@ -34,7 +38,12 @@ public class Bitxo26 extends Agent {
     public void avaluaComportament() {
         estat = estatCombat();
         atura();
-        miraRecurs();
+        if (noMirar == 0) {
+            miraRecurs();
+            evaluarDisparo();
+        } else {
+            noMirar--;
+        }
         camina();
     }
 
@@ -42,8 +51,10 @@ public class Bitxo26 extends Agent {
         //Estamos en colisión
         if (estat.enCollisio) {
             atura();
-
+            comptadorColisio++;
+            gestionaColisio();
         } else {
+            comptadorColisio = 0;
             //Hay una pared cerca
             if (hiHaParet(30)) {
                 giraAProp();
@@ -54,8 +65,49 @@ public class Bitxo26 extends Agent {
             } else if (comptadorGir <= 0) {
                 girRecon();
             } else {
+                System.out.println("endavant");
                 endavant();
             }
+            gestionarEnemic();
+        }
+    }
+
+    private void gestionarEnemic() {
+        if (estat.llançamentEnemicDetectat && !estat.escutActivat) {
+            if (estat.distanciaLlançamentEnemic < 30) {
+                activaEscut();
+                noMirar = 5;
+            }
+            endavant();
+        }
+        if(recursosAnterior > estat.recursosAgafats){
+            if(!estat.escutActivat){
+                activaEscut();
+            }
+        }
+        recursosAnterior = estat.recursosAgafats;   
+        
+    }
+
+    private void gestionaColisio() {
+        if (comptadorColisio > 50) {
+            hyperespai();
+        } else {
+            boolean a = r.nextBoolean();
+            if (a) {
+                esquerra();
+            } else {
+                dreta();
+            }
+
+            a = r.nextBoolean();
+            if (a) {
+                endavant();
+            } else {
+                enrere();
+
+            }
+            //noMirar = 5;
         }
     }
 
@@ -73,11 +125,55 @@ public class Bitxo26 extends Agent {
                 }
             }
         }
+        if ((estat.veigAlgunEscut && estat.escuts < 5) || !estat.veigAlgunRecurs) {
+            for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els recursos
+                Objecte aux = estat.objectes[i];
+                if (aux.agafaTipus() == Estat.ESCUT) {
+                    if (distMin > aux.agafaDistancia()) {
+                        distMin = aux.agafaDistancia();
+                        fin = aux;
+                    }
+                }
+            }
+        }
 
         if (fin != null) {
             mira(fin);
         } else {
             comptadorGir--;
+        }
+    }
+
+    private void evaluarDisparo() {
+        Objecte fin = null;
+        int distMin = 9999999;
+        if (!estat.llançant && (estat.veigAlgunRecurs || estat.veigAlgunEnemic)) {
+            for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els objectes
+                Objecte aux = estat.objectes[i];
+                if (((aux.agafaTipus() >= 100 && aux.agafaTipus() != (100 + estat.id)) || aux.agafaTipus() == Estat.AGENT) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales) {
+                    if (aux.agafaTipus() == Estat.AGENT && aux.agafaDistancia() <= 100) {
+                        fin = aux;
+                        break;
+                    } else if (distMin > aux.agafaDistancia()) {
+                        distMin = aux.agafaDistancia();
+                        fin = aux;
+                    }
+                }
+            }
+        }
+        if (fin != null && estat.llançaments > 0 && !estat.llançant) {
+            if (fin.agafaTipus() == Estat.AGENT && fin.agafaDistancia() <= 100) {
+                mira(fin);
+
+                llança();
+
+            } else if (fin.agafaTipus() != Estat.AGENT) {
+                mira(fin);
+
+                llança();
+
+            }
+
         }
     }
 
