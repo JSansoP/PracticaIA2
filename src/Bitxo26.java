@@ -20,6 +20,7 @@ public class Bitxo26 extends Agent {
     int noMirar = 0;
     int comptadorColisio = 0;
     int recursosAnterior = 0;
+    int comptadorDispar = 0;
 
     public Bitxo26(Agents pare) {
         super(pare, "Exemple26", "imatges/robotank1.gif");
@@ -30,7 +31,11 @@ public class Bitxo26 extends Agent {
         // atributsAgents(v,w,dv,av,ll,es,hy)
         int cost = atributsAgent(6, 5, 600, 45, 23, 5, 3);
         System.out.println("Cost total:" + cost);
-
+        comptadorDispar = 0;
+        recursosAnterior = 0;
+        comptadorColisio = 0;
+        noMirar = 0;
+        comptadorGir = 120;
         // Inicialització de variables que utilitzaré al meu comportament
     }
 
@@ -38,9 +43,21 @@ public class Bitxo26 extends Agent {
     public void avaluaComportament() {
         estat = estatCombat();
         atura();
+        comptadorDispar--;
         if (noMirar == 0) {
-            miraRecurs();
-            evaluarDisparo();
+            Objecte fin = evaluarDisparMenjar();
+            Objecte fin2 = evaluarDisparEnemic();
+            if (fin2 != null && comptadorDispar < 0) {
+                comptadorDispar = 60;
+                mira(fin2);
+                llança();
+            } else if (fin != null) {
+                mira(fin);
+                llança();
+                System.out.println("miramosrecurso");
+                miraRecurs();
+            }
+
         } else {
             noMirar--;
         }
@@ -59,13 +76,13 @@ public class Bitxo26 extends Agent {
             if (hiHaParet(30)) {
                 giraAProp();
 
-            } else if (hiHaParet(85)) {    //Hay una pared relativamente lejos
+            } else if (hiHaParet(85) && estat.distanciaVisors[CENTRAL] < 100) {    //Hay una pared relativamente lejos
                 giraLluny();
 
             } else if (comptadorGir <= 0) {
                 girRecon();
             } else {
-                System.out.println("endavant");
+                //System.out.println("endavant");
                 endavant();
             }
             gestionarEnemic();
@@ -80,13 +97,13 @@ public class Bitxo26 extends Agent {
             }
             endavant();
         }
-        if(recursosAnterior > estat.recursosAgafats){
-            if(!estat.escutActivat){
+        if (recursosAnterior > estat.recursosAgafats) {
+            if (!estat.escutActivat) {
                 activaEscut();
             }
         }
-        recursosAnterior = estat.recursosAgafats;   
-        
+        recursosAnterior = estat.recursosAgafats;
+
     }
 
     private void gestionaColisio() {
@@ -139,42 +156,52 @@ public class Bitxo26 extends Agent {
 
         if (fin != null) {
             mira(fin);
-        } else {
+        } else if (estat.veigAlgunRecurs) {
             comptadorGir--;
         }
     }
 
-    private void evaluarDisparo() {
+    private Objecte evaluarDisparMenjar() {
         Objecte fin = null;
         int distMin = 9999999;
-        if (!estat.llançant && (estat.veigAlgunRecurs || estat.veigAlgunEnemic)) {
+        if (!estat.llançant && estat.veigAlgunRecurs) {
             for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els objectes
                 Objecte aux = estat.objectes[i];
-                if (((aux.agafaTipus() >= 100 && aux.agafaTipus() != (100 + estat.id)) || aux.agafaTipus() == Estat.AGENT) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales) {
-                    if (aux.agafaTipus() == Estat.AGENT && aux.agafaDistancia() <= 100) {
-                        fin = aux;
-                        break;
-                    } else if (distMin > aux.agafaDistancia()) {
+                if (aux.agafaTipus() != Estat.AGENT && ((aux.agafaTipus() >= 100 && aux.agafaTipus() != (100 + estat.id)) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales)) {
+                    if (distMin > aux.agafaDistancia()) {
                         distMin = aux.agafaDistancia();
                         fin = aux;
                     }
                 }
             }
         }
-        if (fin != null && estat.llançaments > 0 && !estat.llançant) {
+        return fin;
+    }
+
+    private Objecte evaluarDisparEnemic() {
+        Objecte fin = null;
+        int distMin = 9999999;
+        if (!estat.llançant && (estat.veigAlgunRecurs || estat.veigAlgunEnemic)) {
+            for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els objectes
+                Objecte aux = estat.objectes[i];
+                if ((aux.agafaTipus() == Estat.AGENT) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales && aux.agafaDistancia() <= 100) {
+                    fin = aux;
+                    return fin;
+                }
+            }
+        }
+        return fin;
+        /*if (fin != null && estat.llançaments > 0 && !estat.llançant) {
             if (fin.agafaTipus() == Estat.AGENT && fin.agafaDistancia() <= 100) {
                 mira(fin);
-
                 llança();
 
             } else if (fin.agafaTipus() != Estat.AGENT) {
                 mira(fin);
-
                 llança();
-
             }
 
-        }
+        }*/
     }
 
     private void giraAProp() {

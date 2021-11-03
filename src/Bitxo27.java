@@ -158,7 +158,7 @@ public class Bitxo27 extends Agent {
             endavant();
         }
 
-        System.out.println(contadorGiro);
+        //System.out.println(contadorGiro);
     }
 
     /**
