@@ -13,6 +13,8 @@ public class Bitxo26 extends Agent {
     static final int CENTRAL = 1;
     static final int DRETA = 2;
 
+    //Declaració de variables 
+    
     static final int distMaxBales = 400;
     Estat estat;
     Random r = new Random();
@@ -63,7 +65,17 @@ public class Bitxo26 extends Agent {
         }
         camina();
     }
-
+    
+    /**
+    * El mètode camina s'encarrega del desplaçament del nostre agent a través
+    * de l'entorn, comprovant en primer lloc si estem en col·lisió sinó
+    * en funció de la distància que estiguem a les parets el nostre agent girarà
+    * més o menys, després si passa un temps en què l'agent no veu cap recurs
+    * llavors fa un gir de 120 º aleatori per tornar a avaluar l'entorn
+    * i finalment en cada iteració gestionem les accions que realitza el
+    * agent sobre un agent enemic
+    */
+    
     private void camina() {
         //Estamos en colisión
         if (estat.enCollisio) {
@@ -89,6 +101,18 @@ public class Bitxo26 extends Agent {
         }
     }
 
+    /**
+    * Aquest mètode s'encarrega de:
+    * En primer lloc, detectar si un dels nostres sectors observa un tret
+    * enemic i si no tenim l'escut activat un cop s'hagi complert aquesta
+    * condició verifiquem si el llançament s'encunetra a prop nostre si
+    * és així activem l'escut.
+    * En segon lloc, detectem si l'enemic ens ha impacatat un tret,
+    * simplement mirant el nombre de recursos que tenim, si és així activem
+    * l'escut.
+    *
+    */
+    
     private void gestionarEnemic() {
         if (estat.llançamentEnemicDetectat && !estat.escutActivat) {
             if (estat.distanciaLlançamentEnemic < 30) {
@@ -105,6 +129,14 @@ public class Bitxo26 extends Agent {
         recursosAnterior = estat.recursosAgafats;
 
     }
+    
+    /**
+    * Aquest mètode s'encarrega de gestionar les accions que realitza l'agent
+    * en col·lisió, primer, duem a terme la verificació d'un comptador
+    * de col·lisió, és a dir, si el nostre agent porta força temps
+    * col·lisionant activem l'hiperespai, sinó intentem evitar la col·lisió,
+    * realitzant un gir i un moviment aleatori.
+    */
 
     private void gestionaColisio() {
         if (comptadorColisio > 50) {
@@ -127,6 +159,15 @@ public class Bitxo26 extends Agent {
             //noMirar = 5;
         }
     }
+    
+    /**
+    * Aquest mètode s'encarrega de:
+    * Buscar els nostres recursos dins de l'entorn de manera prioritària, però
+    * si veiem algun escut i en tenim pocs o si no veiem cap recurs a prop
+    * anem a buscar els escuts.
+    * Mentre no veiem res durant un temps anem decrementant el comptador
+    * de gira per així fer un gir i tornar a avaluar l'entorn.
+    */
 
     private void miraRecurs() { //Falta evaluar los escudos
         Objecte fin = null;
@@ -161,6 +202,11 @@ public class Bitxo26 extends Agent {
         }
     }
 
+    /**
+     * Mètode que s'encarrega de retornar un recurs enemic
+     * @return 
+     */
+    
     private Objecte evaluarDisparMenjar() {
         Objecte fin = null;
         int distMin = 9999999;
@@ -177,7 +223,12 @@ public class Bitxo26 extends Agent {
         }
         return fin;
     }
-
+    
+    /**
+     * Mètode que s'encarrega de retornar si hi ha algun enemic per llançar
+     * @return 
+     */
+    
     private Objecte evaluarDisparEnemic() {
         Objecte fin = null;
         int distMin = 9999999;
@@ -203,7 +254,15 @@ public class Bitxo26 extends Agent {
 
         }*/
     }
-
+    
+    /**
+    * Mètode que s'encarrega de girar uns graus entre [20º - 40º] en funció
+    * a la distància que es troben els visors de l'esquerra o dreta.
+    * Si el visor de l'esquerra és més gran a la dreta girem uns graus
+    * aleatoris dins del rang cap a l'esquerra en cas contrari girem
+    * un nombre aleatori dins del rang cap a la dreta.
+    */
+    
     private void giraAProp() {
         if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
             atura();
@@ -216,7 +275,13 @@ public class Bitxo26 extends Agent {
             endavant();
         }
     }
-
+    
+    /**
+    * Mètode que s'encarrega de girar en funció a la distància que es troben 
+    * els visors de l'esquerra o dreta. Si el visor de l'esquerra és més gran 
+    * a la dreta girem a l'esquerra en cas contrari girem a la dreta
+    */
+    
     private void giraLluny() {
         if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
             atura();
@@ -229,6 +294,11 @@ public class Bitxo26 extends Agent {
         }
     }
 
+    /**
+    * Mètode que s'encarrega de fer un gir de 120º a l'esquerra o dreta
+    * de forma aleatòria
+    */
+    
     private void girRecon() {
         atura();
         if (r.nextBoolean()) {
@@ -239,6 +309,13 @@ public class Bitxo26 extends Agent {
         endavant();
         comptadorGir = 120;
     }
+
+    /**
+     * Método que se encarga de devolver si nuestro agente ve una paret a una 
+     * distáncia que recibe por parámetro.
+     * @param distancia
+     * @return 
+     */
 
     private boolean hiHaParet(int distancia) {
         return (estat.objecteVisor[ESQUERRA] == PARET && estat.distanciaVisors[ESQUERRA] < distancia)
