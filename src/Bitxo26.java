@@ -163,9 +163,9 @@ public class Bitxo26 extends Agent {
     
     /**
     * Aquest mètode s'encarrega de:
-    * Buscar els nostres recursos dins de l'entorn de manera prioritària, però
+    * Cercar els nostres recursos dins de l'entorn de manera prioritària, però
     * si veiem algun escut i en tenim pocs o si no veiem cap recurs a prop
-    * anem a buscar els escuts.
+    * anem a cercar els escuts.
     * Mentre no veiem res durant un temps anem decrementant el comptador
     * de gira per així fer un gir i tornar a avaluar l'entorn.
     */
@@ -258,11 +258,12 @@ public class Bitxo26 extends Agent {
     }
     
     /**
-    * Mètode que s'encarrega de girar uns graus entre [20º - 40º] en funció
-    * a la distància que es troben els visors de l'esquerra o dreta.
-    * Si el visor de l'esquerra és més gran a la dreta girem uns graus
-    * aleatoris dins del rang cap a l'esquerra en cas contrari girem
-    * un nombre aleatori dins del rang cap a la dreta.
+    * Mètode que s'encarrega de girar uns graus entre [10º - 40º], pero si el 
+    * visor central veu una paret a una distancia menor a 70 px aleshores fem 
+    * un gir aleatori dins el range sino vol dir que te una paret lluny, 
+    * alsehores feim un gir de 10º i en funció a la distància que es troben els 
+    * visors de l'esquerra o dreta. Si el visor de l'esquerra és més gran a la 
+    * dreta girem cap a l'esquerra en cas contrari girem cap a la dreta.
     */
     
     private void giraAProp() {
