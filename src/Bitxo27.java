@@ -177,7 +177,7 @@ public class Bitxo27 extends Agent {
     private void miraRecurs() { //Falta evaluar los escudos
         Objecte fin = null;
         int distMin = 99999999;
-        if (estat.veigAlgunRecurs || estat.veigAlgunRecurs) {
+        if (estat.veigAlgunRecurs) {
             for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els recursos
                 Objecte aux = estat.objectes[i];
                 if (aux.agafaTipus() == 100 + estat.id || (aux.agafaTipus()==Estat.ESCUT && estat.escuts<5)) {
@@ -187,7 +187,8 @@ public class Bitxo27 extends Agent {
                     }
                 }
             }
-        } else if (estat.veigAlgunEscut) {
+        }
+        if (fin == null && estat.veigAlgunEscut) {
             for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els recursos
                 Objecte aux = estat.objectes[i];
                 if (aux.agafaTipus() == Estat.ESCUT) {
@@ -200,10 +201,10 @@ public class Bitxo27 extends Agent {
         }
 
         if (fin != null) {
-            if (fin.agafaTipus() == 100 + estat.id) {
-                switch (fin.agafaSector()) {
-                    case 2:
-                        mira(fin);
+            if (fin.agafaTipus() == 100 + estat.id) { //Si l'objecte elegit és recurs nostre,
+                switch (fin.agafaSector()) {            //anam a per ell. Si està als sectors 2 i 3 simplement
+                    case 2:                             //el miram, si està al 1 o 4 giram per poder-lo mirar.
+                        mira(fin);  
                         break;
                     case 3:
                         mira(fin);
@@ -252,7 +253,7 @@ public class Bitxo27 extends Agent {
      */
     private Objecte evaluarDisparEnemic() {
         Objecte fin = null;
-        if (!estat.llançant && (estat.veigAlgunRecurs || estat.veigAlgunEnemic)) {
+        if (!estat.llançant && (estat.veigAlgunEnemic)) {
             for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els objectes
                 Objecte aux = estat.objectes[i];
 
@@ -278,11 +279,11 @@ public class Bitxo27 extends Agent {
         //gira(0);
         if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
             atura();
-            gira(10);
+            gira(10 + r.nextInt(30)*(estat.distanciaVisors[CENTRAL]<70 ? 1:0));
             endavant();
         } else {
             atura();
-            gira(-1 * (10));
+            gira(-1 * (10 + r.nextInt(30)*(estat.distanciaVisors[CENTRAL]<70 ? 1:0)));
             endavant();
         }
     }
