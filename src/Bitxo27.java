@@ -13,12 +13,14 @@ public class Bitxo27 extends Agent {
     static final int CENTRAL = 1;
     static final int DRETA = 2;
 
-    //Declaració de variables 
+    //Declaració de constants
     final int distMaxBales = 400;
     final int distMaxEnemic = 120;
     final int resetGiro = 120;
     final int delayDispar = 70;
     Estat estat;
+    
+    //Declaració de variables
     Random r = new Random();
     int comptadorGir = resetGiro;
     int noMirar = 0;
@@ -28,13 +30,13 @@ public class Bitxo27 extends Agent {
     final int velAngular = 7;
 
     public Bitxo27(Agents pare) {
-        super(pare, "VersioBona", "imatges/hipnotizar.gif");
+        super(pare, "JAJ", "imatges/hipnotizar.gif");
     }
 
     @Override
     public void inicia() {
         // atributsAgents(v,w,dv,av,ll,es,hy)
-        int cost = atributsAgent(6, 0, 699, 45, 35, 5, 3);
+        int cost = atributsAgent(6, 1, 699, 45, 40, 7, 2);
         System.out.println("Cost total:" + cost);
         comptadorDispar = 0;
         impactesAnterior = 0;
@@ -58,7 +60,6 @@ public class Bitxo27 extends Agent {
         } else if (fin != null) { //Cas disparar recurs enemic
             mira(fin);
             llança();
-            //System.out.println("miramosrecurso");
         }
         if (noMirar <= 0 && fin2 == null) {
             miraRecurs();
@@ -95,7 +96,6 @@ public class Bitxo27 extends Agent {
             } else if (comptadorGir <= 0) {
                 girRecon();
             } else {
-                //System.out.println("endavant");
                 endavant();
             }
             gestionarEnemic();
@@ -112,16 +112,21 @@ public class Bitxo27 extends Agent {
      *
      */
     private void gestionarEnemic() {
-        if (estat.llançamentEnemicDetectat && !estat.escutActivat) {
-            if (estat.distanciaLlançamentEnemic < 40) {
+        if (estat.llançamentEnemicDetectat && !estat.escutActivat && estat.distanciaLlançamentEnemic < 40) {
+
+            if (estat.escuts > 0) {
                 activaEscut();
-                //noMirar = 5; //QUITAMOS?
+            } else {
+                hyperespai();
             }
-            endavant();
         }
         if (impactesAnterior < estat.impactesRebuts) {
             if (!estat.escutActivat) {
-                activaEscut();
+                if (estat.escuts > 0) {
+                    activaEscut();
+                } else {
+                    hyperespai();
+                }
             }
         }
         impactesAnterior = estat.impactesRebuts;
@@ -155,15 +160,6 @@ public class Bitxo27 extends Agent {
                 enrere();
 
             }
-            /*enrere();
-            if(r.nextInt(100)>50){
-                
-                gira(45);
-            } else{
-                
-                gira(-45);
-            }*/
-            //noMirar = 5;
         }
     }
 
@@ -174,13 +170,13 @@ public class Bitxo27 extends Agent {
      * res durant un temps anem decrementant el comptador de gira per així fer
      * un gir i tornar a avaluar l'entorn.
      */
-    private void miraRecurs() { //Falta evaluar los escudos
+    private void miraRecurs() {
         Objecte fin = null;
         int distMin = 99999999;
         if (estat.veigAlgunRecurs) {
             for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els recursos
                 Objecte aux = estat.objectes[i];
-                if (aux.agafaTipus() == 100 + estat.id || (aux.agafaTipus()==Estat.ESCUT && estat.escuts<5)) {
+                if (aux.agafaTipus() == 100 + estat.id || (aux.agafaTipus() == Estat.ESCUT && estat.escuts < 5)) {
                     if (distMin > aux.agafaDistancia()) {
                         distMin = aux.agafaDistancia();
                         fin = aux;
@@ -204,7 +200,7 @@ public class Bitxo27 extends Agent {
             if (fin.agafaTipus() == 100 + estat.id) { //Si l'objecte elegit és recurs nostre,
                 switch (fin.agafaSector()) {            //anam a per ell. Si està als sectors 2 i 3 simplement
                     case 2:                             //el miram, si està al 1 o 4 giram per poder-lo mirar.
-                        mira(fin);  
+                        mira(fin);
                         break;
                     case 3:
                         mira(fin);
@@ -225,7 +221,7 @@ public class Bitxo27 extends Agent {
     }
 
     /**
-     * Mètode que s'encarrega de retornar un recurs enemic
+     * Mètode que s'encarrega de retornar un recurs enemic al qual disparar
      *
      * @return
      */
@@ -233,7 +229,7 @@ public class Bitxo27 extends Agent {
         Objecte fin = null;
         int distMin = 9999999;
         if (!estat.llançant && estat.veigAlgunRecurs) {
-            for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els objectes
+            for (int i = 0; i < estat.numObjectes; i++) { 
                 Objecte aux = estat.objectes[i];
                 if (aux.agafaTipus() != Estat.AGENT && ((aux.agafaTipus() >= 100 && aux.agafaTipus() != (100 + estat.id)) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales)) {
                     if (distMin > aux.agafaDistancia()) {
@@ -254,10 +250,10 @@ public class Bitxo27 extends Agent {
     private Objecte evaluarDisparEnemic() {
         Objecte fin = null;
         if (!estat.llançant && (estat.veigAlgunEnemic)) {
-            for (int i = 0; i < estat.numObjectes; i++) { //Recorrem tots els objectes
+            for (int i = 0; i < estat.numObjectes; i++) {
                 Objecte aux = estat.objectes[i];
 
-                if ((aux.agafaTipus() == Estat.AGENT) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() < distMaxBales && aux.agafaDistancia() <= distMaxEnemic) {
+                if ((aux.agafaTipus() == Estat.AGENT) && (aux.agafaSector() == 2 || aux.agafaSector() == 3) && aux.agafaDistancia() <= distMaxEnemic) {
                     fin = aux;
                     return fin;
                 }
@@ -276,14 +272,13 @@ public class Bitxo27 extends Agent {
      */
     private void giraAProp() {
         System.out.println("GiraAProp");
-        //gira(0);
         if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
             atura();
-            gira(10 + r.nextInt(30)*(estat.distanciaVisors[CENTRAL]<70 ? 1:0));
+            gira(10 + r.nextInt(30) * (estat.distanciaVisors[CENTRAL] < 70 ? 1 : 0));
             endavant();
         } else {
             atura();
-            gira(-1 * (10 + r.nextInt(30)*(estat.distanciaVisors[CENTRAL]<70 ? 1:0)));
+            gira(-1 * (10 + r.nextInt(30) * (estat.distanciaVisors[CENTRAL] < 70 ? 1 : 0)));
             endavant();
         }
     }
@@ -291,7 +286,7 @@ public class Bitxo27 extends Agent {
     /**
      * Mètode que s'encarrega de girar en funció a la distància que es troben
      * els visors de l'esquerra o dreta. Si el visor de l'esquerra és més gran a
-     * la dreta girem a l'esquerra en cas contrari girem a la dreta
+     * la dreta girem a l'esquerra en cas contrari girem a la dreta.
      */
     private void giraLluny() {
         if (estat.distanciaVisors[ESQUERRA] > estat.distanciaVisors[DRETA]) {
@@ -307,7 +302,7 @@ public class Bitxo27 extends Agent {
 
     /**
      * Mètode que s'encarrega de fer un gir de 120º a l'esquerra o dreta de
-     * forma aleatòria
+     * forma aleatòria.
      */
     private void girRecon() {
         atura();
