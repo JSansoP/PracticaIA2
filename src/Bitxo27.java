@@ -36,7 +36,7 @@ public class Bitxo27 extends Agent {
     @Override
     public void inicia() {
         // atributsAgents(v,w,dv,av,ll,es,hy)
-        int cost = atributsAgent(6, 1, 699, 45, 40, 7, 2);
+        int cost = atributsAgent(6, 1, 699, 45, 37, 5, 3);
         System.out.println("Cost total:" + cost);
         comptadorDispar = 0;
         impactesAnterior = 0;
